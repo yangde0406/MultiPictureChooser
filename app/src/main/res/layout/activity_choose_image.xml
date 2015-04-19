@@ -1,14 +1,43 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                tools:context=".MyActivity">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MyActivity">
+
+    <RelativeLayout
+        android:id="@+id/choose_image_header"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#FFFF33">
+
+        <Button
+            android:id="@+id/header_back"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:text="返回"
+            android:textColor="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/header_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true" />
+
+        <Button
+            android:id="@+id/header_right_button"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:textColor="#FFFFFF" />
+    </RelativeLayout>
 
     <GridView
         android:id="@+id/choose_image_gridview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignParentLeft="true"
+        android:layout_below="@+id/choose_image_header"
         android:background="#ffffff"
         android:clipToPadding="true"
         android:horizontalSpacing="@dimen/gridview_space_size"
@@ -16,8 +45,16 @@
         android:numColumns="3"
         android:scrollbars="none"
         android:stretchMode="columnWidth"
-        android:verticalSpacing="@dimen/gridview_space_size">
-    </GridView>
+        android:verticalSpacing="@dimen/gridview_space_size"></GridView>
+
+    <fragment
+        android:id="@+id/choose_image_album"
+        android:name="com.yangde.multipicturechooser.fragment.SelectAlbumFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/choose_image_bottom"
+        android:layout_below="@+id/choose_image_header"
+        tools:layout="@layout/fragment_select_album" />
 
     <RelativeLayout
         android:id="@+id/choose_image_bottom"
@@ -33,7 +70,7 @@
             android:layout_alignParentRight="true"
             android:background="@null"
             android:text="预览"
-            android:textColor="@android:color/white"/>
+            android:textColor="@android:color/white" />
 
         <Button
             android:id="@+id/choose_image_show_album"
@@ -45,7 +82,7 @@
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
             android:text="图片和视频"
-            android:textColor="@android:color/white"/>
+            android:textColor="@android:color/white" />
 
     </RelativeLayout>
 

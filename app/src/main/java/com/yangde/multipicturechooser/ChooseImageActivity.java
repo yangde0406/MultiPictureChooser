@@ -1,24 +1,37 @@
 package com.yangde.multipicturechooser;
 
-import android.app.Activity;
-import android.content.ContentResolver;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.GridView;
+import android.widget.TextView;
 
-import com.yangde.multipicturechooser.adapter.ImageItem;
 import com.yangde.multipicturechooser.adapter.PictureAdapter;
+import com.yangde.multipicturechooser.adapter.vo.AlbumItem;
+import com.yangde.multipicturechooser.consts.LoadeImageConsts;
+import com.yangde.multipicturechooser.fragment.SelectAlbumFragment;
 import com.yangde.multipicturechooser.manager.ImageLoaderManager;
 
-import java.util.ArrayList;
 
+public class ChooseImageActivity extends FragmentActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+    public static final String[] LOADING_COLUMN = {
+            MediaStore.Images.ImageColumns._ID, // ID “559497”
+            MediaStore.Images.Media.DATA,// “/storage/emulated/0/DCIM/Camera/IMG_20141206_203606.jpg”
+            MediaStore.Images.ImageColumns.DISPLAY_NAME,// 图片名称 “IMG_20141206_203606.jpg”
+            MediaStore.Images.Media.BUCKET_ID, // dir id 目录
+    };
+    private Integer albumId;
 
-public class ChooseImageActivity extends Activity {
     private GridView gridView;
-    public PictureAdapter adapter;
+    private PictureAdapter adapter;
+    private SelectAlbumFragment albumFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,9 +40,9 @@ public class ChooseImageActivity extends Activity {
         ImageLoaderManager.getInstance(this);
 
         gridView = (GridView) findViewById(R.id.choose_image_gridview);
-        ArrayList<ImageItem> list = getImages();
-
-        adapter = new PictureAdapter(this, list);
+        adapter = new PictureAdapter(this);
+        albumFragment = (SelectAlbumFragment) getSupportFragmentManager().findFragmentById(R.id.choose_image_album);
+        refreshGridViewByAlbumId(LoadeImageConsts.LOADER_IMAGE_CURSOR);
         gridView.setAdapter(adapter);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -37,25 +50,74 @@ public class ChooseImageActivity extends Activity {
                 adapter.getItem(position);
             }
         });
-//        getSupportLoaderManager().initLoader(1, null, LoaderManager.getInstance(this));
-        adapter.notifyDataSetChanged();
+
+        Button showHideListView = (Button) findViewById(R.id.choose_image_show_album);
+        showHideListView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                albumFragment.showOrHideList();
+            }
+        });
     }
 
-    private ArrayList<ImageItem> getImages() {
-        ContentResolver contentResolver = getContentResolver();
-        String[] projection = {MediaStore.Images.Media._ID, MediaStore.Images.Media.TITLE};
-        Cursor cursor = contentResolver.query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, projection, null, null, MediaStore.Images.Media.DEFAULT_SORT_ORDER);
-        int getCount = cursor.getColumnCount();
-        ArrayList<ImageItem> arrayList = new ArrayList<ImageItem>(getCount);
-        cursor.moveToFirst();
-        ImageItem item;
-        while (cursor.moveToNext()) {
-            item = new ImageItem();
-            item.id = cursor.getInt(cursor.getColumnIndex(MediaStore.Images.Media._ID));
-            item.name = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.TITLE));
-            arrayList.add(item);
-//            System.out.println("__________>" + cursor.getInt(cursor.getColumnIndex(MediaStore.Images.Media._ID)));
+    public void refreshGridViewByAlbumId(int id) {
+        this.albumId = id;
+        getSupportLoaderManager().initLoader(id, null, this);
+    }
+
+    private void initHeader() {
+        Button backButton = (Button) findViewById(R.id.header_back);
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+
+        TextView titleView = (TextView) findViewById(R.id.header_title);
+        titleView.setText("选择图片");
+
+        Button confirmButton = (Button) findViewById(R.id.header_right_button);
+        confirmButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // todo confirm
+            }
+        });
+    }
+
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        String selection = null;
+        String[] selectionArgs = null;
+        if (albumId != null && albumId < 0) {
+            selection = "bucket_id=?";
+            selectionArgs = new String[]{"" + id};
         }
-        return arrayList;
+        return new CursorLoader(this, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, LOADING_COLUMN, selection, selectionArgs, MediaStore.Images.Media.DEFAULT_SORT_ORDER);
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        // 第一次默认取全部图片，所以相册第一项为所有图片
+        if (loader.getId() == LoadeImageConsts.LOADER_IMAGE_CURSOR) {
+            AlbumItem item = new AlbumItem();
+            item.id = loader.getId();
+            item.imageCount = cursor.getCount();
+            item.albumName = "所有图片";
+            cursor.moveToFirst();
+            item.firstImageId = cursor.getInt(cursor.getColumnIndex(MediaStore.Images.Media._ID));
+            albumFragment.setFirstItem(item);
+            adapter.setLoadCursor(cursor);
+        } else {
+            adapter.setLoadCursor(cursor);
+        }
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        adapter.getLoadCursor().close();
+        adapter.setLoadCursor(null);
     }
 }

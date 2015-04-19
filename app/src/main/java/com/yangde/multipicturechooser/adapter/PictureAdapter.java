@@ -3,6 +3,7 @@ package com.yangde.multipicturechooser.adapter;
 import android.app.Activity;
 import android.content.Context;
 import android.database.Cursor;
+import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,11 +14,12 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.yangde.multipicturechooser.R;
+import com.yangde.multipicturechooser.adapter.vo.ImageItem;
 import com.yangde.multipicturechooser.manager.ImageLoaderManager;
 import com.yangde.multipicturechooser.utils.Utils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by yangde on 15/4/15.
@@ -26,12 +28,12 @@ public class PictureAdapter extends BaseAdapter {
     private int itemSize;
     private LayoutInflater inflater;
     private CompoundButton.OnCheckedChangeListener listener;
-    private List<ImageItem> dataList;
+    private Map<Integer, ImageItem> dataMap;
     private Context context;
     private RelativeLayout.LayoutParams params;
     private Cursor loadCursor;
 
-    public PictureAdapter(Activity activity, ArrayList<ImageItem> list) {
+    public PictureAdapter(Activity activity) {
         inflater = activity.getLayoutInflater();
         listener = new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -39,7 +41,7 @@ public class PictureAdapter extends BaseAdapter {
 
             }
         };
-        dataList = list;
+        dataMap = new HashMap<Integer, ImageItem>();
         context = activity;
 
         // 计算每个项的高度：高度=宽度
@@ -51,17 +53,22 @@ public class PictureAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return dataList.size();
+        if (loadCursor == null) {
+            return 0;
+        }
+        return loadCursor.getCount();
     }
 
     @Override
     public Object getItem(int position) {
-        return dataList.get(position);
+        return dataMap.get(position);
     }
 
     @Override
     public long getItemId(int position) {
-        return 0;
+        ImageItem item = dataMap.get(position);
+        if (item == null) return 0;
+        return dataMap.get(position).id;
     }
 
     @Override
@@ -80,9 +87,42 @@ public class PictureAdapter extends BaseAdapter {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        ImageLoaderManager.getInstance(context).dispalyThumnailImage(dataList.get(position).id, holder.imageView);
 
+        if (loadCursor != null) {
+            loadCursor.moveToPosition(position);
+
+            ImageItem item;
+            if (!dataMap.containsKey(position + 1)) {
+                item = new ImageItem();
+                item.id = loadCursor.getInt(loadCursor.getColumnIndex(MediaStore.Images.Media._ID));
+                item.name = loadCursor.getString(loadCursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
+                item.realPath = loadCursor.getString(loadCursor.getColumnIndex(MediaStore.Images.Media.DATA));
+                item.isCheck = false;
+                item.albumId = loadCursor.getInt(loadCursor.getColumnIndex(MediaStore.Images.Media.BUCKET_ID));
+            } else {
+                item = dataMap.get(position + 1);
+            }
+
+            if (position == 0) {
+                holder.checkBox.setChecked(false);
+                holder.checkBox.setVisibility(View.GONE);
+            } else {
+                holder.checkBox.setChecked(item.isCheck);
+                holder.checkBox.setVisibility(View.VISIBLE);
+            }
+            ImageLoaderManager.getInstance(context).dispalyThumnailImage(item.id, holder.imageView);
+        }
         return convertView;
+    }
+
+    public void setLoadCursor(Cursor loadCursor) {
+        dataMap.clear();
+        this.loadCursor = loadCursor;
+        notifyDataSetChanged();
+    }
+
+    public Cursor getLoadCursor() {
+        return loadCursor;
     }
 
     class ViewHolder {

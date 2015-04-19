@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * 显示图片
  * Created by yangde on 15/4/17.
  */
 public class ImageLoader {
