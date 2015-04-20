@@ -49,7 +49,9 @@ public class ImageLoaderManager {
     }
 
     public boolean addSelect(ImageItem item) {
-        if (imageItemMap.size() >= maxSelectSize) {
+        if (imageItemMap.containsKey(item.id)) {
+            return true;
+        } else if (imageItemMap.size() >= maxSelectSize) {
             return false;
         } else {
             imageItemMap.put(item.id, item);
@@ -57,7 +59,14 @@ public class ImageLoaderManager {
         }
     }
 
-    public ImageItem getImageItem (int key) {
+    public boolean removeSelect(ImageItem item) {
+        if (imageItemMap.containsKey(item.id)) {
+            imageItemMap.remove(item.id);
+        }
+        return true;
+    }
+
+    public ImageItem getImageItem(int key) {
         return imageItemMap.get(key);
     }
 

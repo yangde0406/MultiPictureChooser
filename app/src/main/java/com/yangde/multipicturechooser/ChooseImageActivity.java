@@ -12,6 +12,7 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.yangde.multipicturechooser.adapter.PictureAdapter;
 import com.yangde.multipicturechooser.adapter.vo.AlbumItem;
@@ -47,7 +48,12 @@ public class ChooseImageActivity extends FragmentActivity implements LoaderManag
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                ImageItem item = adapter.getItem(position);
+                if (position == 0) {
+                    Toast.makeText(ChooseImageActivity.this, "拍照", Toast.LENGTH_LONG).show();
+                } else {
+                    ImageItem item = adapter.getItem(position - 1);
+                    Toast.makeText(ChooseImageActivity.this, item.name, Toast.LENGTH_LONG).show();
+                }
             }
         });
 

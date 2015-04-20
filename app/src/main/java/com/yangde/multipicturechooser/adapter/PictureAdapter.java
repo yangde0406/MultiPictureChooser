@@ -12,6 +12,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.yangde.multipicturechooser.R;
@@ -28,7 +29,8 @@ import java.util.Map;
 public class PictureAdapter extends BaseAdapter {
     private int itemSize;
     private LayoutInflater inflater;
-    private CompoundButton.OnCheckedChangeListener listener;
+    private CompoundButton.OnCheckedChangeListener listener1;
+    private View.OnClickListener listener;
     private Map<Integer, ImageItem> dataMap;
     private Context context;
     private RelativeLayout.LayoutParams params;
@@ -47,16 +49,20 @@ public class PictureAdapter extends BaseAdapter {
         int spaceSize = context.getResources().getDimensionPixelSize(R.dimen.gridview_space_size) * 2;
         itemSize = (point[0] - spaceSize) / 3;
 
-        listener = new CompoundButton.OnCheckedChangeListener() {
+        listener = new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                ViewHolder holder = (ViewHolder) buttonView.getTag();
-                if (loaderManager.addSelect(holder.imageItem)) {
-                    holder.imageItem.isChecked = isChecked;
+            public void onClick(View v) {
+                ViewHolder holder = (ViewHolder) v.getTag();
+                if (!holder.checkBox.isChecked()) {
+                    holder.checkBox.setChecked(false);
+                    loaderManager.removeSelect(holder.imageItem);
                 } else {
-                    holder.imageItem.isChecked = false;
-                    notifyDataSetChanged();
-                    Toast.makeText(context, String.format("您最多只能选择%d张图片", loaderManager.getMaxSelectSize()), Toast.LENGTH_LONG).show();
+                    if (!loaderManager.addSelect(holder.imageItem)) {
+                        holder.checkBox.setChecked(false);
+                        Toast.makeText(context, String.format("您最多只能选择%d张图片", loaderManager.getMaxSelectSize()), Toast.LENGTH_LONG).show();
+                    } else {
+                        holder.checkBox.setChecked(true);
+                    }
                 }
             }
         };
@@ -90,13 +96,13 @@ public class PictureAdapter extends BaseAdapter {
             holder = new ViewHolder();
             holder.checkBox = (CheckBox) convertView.findViewById(R.id.picture_checkbox);
             holder.imageView = (ImageView) convertView.findViewById(R.id.picture_imageview);
-            holder.checkBox.setOnCheckedChangeListener(listener);
+            holder.textView = (TextView) convertView.findViewById(R.id.text);
+            holder.checkBox.setOnClickListener(listener);
             params = (RelativeLayout.LayoutParams) holder.imageView.getLayoutParams();
             params.height = itemSize;
             holder.imageView.setLayoutParams(params);
 
             holder.checkBox.setTag(holder);
-            holder.checkBox.setOnCheckedChangeListener(listener);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -115,7 +121,6 @@ public class PictureAdapter extends BaseAdapter {
                     item.id = loadCursor.getInt(loadCursor.getColumnIndex(MediaStore.Images.Media._ID));
                     item.name = loadCursor.getString(loadCursor.getColumnIndex(MediaStore.Images.Media.DISPLAY_NAME));
                     item.realPath = loadCursor.getString(loadCursor.getColumnIndex(MediaStore.Images.Media.DATA));
-                    item.isChecked = false;
                     item.albumId = loadCursor.getInt(loadCursor.getColumnIndex(MediaStore.Images.Media.BUCKET_ID));
 
                     dataMap.put(position, item);
@@ -123,7 +128,8 @@ public class PictureAdapter extends BaseAdapter {
                     item = dataMap.get(position);
                 }
                 holder.imageItem = item;
-                holder.checkBox.setChecked(item.isChecked);
+                holder.textView.setText(item.name);
+                holder.checkBox.setChecked(loaderManager.getImageItem(item.id) != null && loaderManager.getSelectCount() <= loaderManager.getMaxSelectSize());
                 holder.checkBox.setVisibility(View.VISIBLE);
                 ImageLoaderManager.getInstance(context).dispalyThumnailImage(item.id, holder.imageView);
             }
@@ -145,5 +151,7 @@ public class PictureAdapter extends BaseAdapter {
         ImageItem imageItem;
         ImageView imageView;
         CheckBox checkBox;
+
+        TextView textView;
     }
 }

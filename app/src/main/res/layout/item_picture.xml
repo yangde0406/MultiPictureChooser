@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:background="#666666"
-                android:layout_height="match_parent">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#666666"
+    android:descendantFocusability="blocksDescendants">
 
     <ImageView
         android:id="@+id/picture_imageview"
@@ -11,7 +12,7 @@
         android:layout_height="match_parent"
         android:background="@null"
         android:scaleType="fitCenter"
-        android:src="@drawable/ic_launcher"/>
+        android:src="@drawable/ic_launcher" />
 
     <CheckBox
         android:id="@+id/picture_checkbox"
@@ -19,6 +20,15 @@
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
-        android:layout_margin="6dp"/>
+        android:layout_margin="6dp"
+        android:checked="false" />
+
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:textColor="#00FF99"
+        android:textSize="10sp" />
 
 </RelativeLayout>
