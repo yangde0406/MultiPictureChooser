@@ -15,14 +15,14 @@ import android.widget.TextView;
 
 import com.yangde.multipicturechooser.adapter.PictureAdapter;
 import com.yangde.multipicturechooser.adapter.vo.AlbumItem;
+import com.yangde.multipicturechooser.adapter.vo.ImageItem;
 import com.yangde.multipicturechooser.consts.LoadeImageConsts;
 import com.yangde.multipicturechooser.fragment.SelectAlbumFragment;
 import com.yangde.multipicturechooser.manager.ImageLoaderManager;
 
 
 public class ChooseImageActivity extends FragmentActivity implements LoaderManager.LoaderCallbacks<Cursor> {
-    public static final String[] LOADING_COLUMN = {
-            MediaStore.Images.ImageColumns._ID, // ID “559497”
+    public static final String[] LOADING_COLUMN = {MediaStore.Images.ImageColumns._ID, // ID “559497”
             MediaStore.Images.Media.DATA,// “/storage/emulated/0/DCIM/Camera/IMG_20141206_203606.jpg”
             MediaStore.Images.ImageColumns.DISPLAY_NAME,// 图片名称 “IMG_20141206_203606.jpg”
             MediaStore.Images.Media.BUCKET_ID, // dir id 目录
@@ -37,7 +37,7 @@ public class ChooseImageActivity extends FragmentActivity implements LoaderManag
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_choose_image);
-        ImageLoaderManager.getInstance(this);
+        ImageLoaderManager.getInstance(this).setMaxSelectSize(6);
 
         gridView = (GridView) findViewById(R.id.choose_image_gridview);
         adapter = new PictureAdapter(this);
@@ -47,17 +47,12 @@ public class ChooseImageActivity extends FragmentActivity implements LoaderManag
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                adapter.getItem(position);
+                ImageItem item = adapter.getItem(position);
             }
         });
 
-        Button showHideListView = (Button) findViewById(R.id.choose_image_show_album);
-        showHideListView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                albumFragment.showOrHideList();
-            }
-        });
+        initHeader();
+
     }
 
     public void refreshGridViewByAlbumId(int id) {
@@ -117,7 +112,9 @@ public class ChooseImageActivity extends FragmentActivity implements LoaderManag
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        adapter.getLoadCursor().close();
-        adapter.setLoadCursor(null);
+        if (adapter.getLoadCursor() != null) {
+            adapter.getLoadCursor().close();
+            adapter.setLoadCursor(null);
+        }
     }
 }

@@ -14,6 +14,9 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 import android.widget.AdapterView;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ListView;
 
 import com.yangde.multipicturechooser.ChooseImageActivity;
@@ -57,6 +60,7 @@ public class SelectAlbumFragment extends Fragment implements LoaderManager.Loade
                 }
             }
         });
+        getView().setClickable(false);
 
         albumListView = (ListView) getView().findViewById(R.id.select_album_listview);
         albumListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -71,6 +75,15 @@ public class SelectAlbumFragment extends Fragment implements LoaderManager.Loade
         adapter = new AlbumAdapter(getActivity());
         albumListView.setAdapter(adapter);
         getLoaderManager().initLoader(LoadeImageConsts.LOADER_ALBUM_CURSOR, null, this);
+
+        // show or hide album listview
+        final CheckBox showHideListView = (CheckBox) getView().findViewById(R.id.choose_image_album);
+        showHideListView.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                showOrHideList();
+            }
+        });
     }
 
     public void setFirstItem(AlbumItem item) {
@@ -124,7 +137,7 @@ public class SelectAlbumFragment extends Fragment implements LoaderManager.Loade
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         // 1=1) group by(bucket_id :用于按照结果（MediaStore.Images.Media.BUCKET_ID = bucket_display_name）去重，选出所有相册
-        return new CursorLoader(getActivity(), MediaStore.Images.Media.EXTERNAL_CONTENT_URI, LoadeImageConsts.LOADING_COLUMN, "1=1) group by (bucket_display_name", null, MediaStore.Images.Media.DEFAULT_SORT_ORDER);
+        return new CursorLoader(getActivity(), MediaStore.Images.Media.EXTERNAL_CONTENT_URI, LOADING_COLUMN, "1=1) group by (bucket_display_name", null, MediaStore.Images.Media.DEFAULT_SORT_ORDER);
     }
 
     @Override
