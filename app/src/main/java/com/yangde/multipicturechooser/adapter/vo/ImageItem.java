@@ -10,5 +10,5 @@ public class ImageItem {
     public int id;
     public int albumId;
     public String realPath;
-    public boolean isCheck;
+    public boolean isChecked;
 }
